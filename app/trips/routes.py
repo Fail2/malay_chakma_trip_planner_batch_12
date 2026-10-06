@@ -63,4 +63,22 @@ def create_trip():
             "max_travelers": trip.max_travelers
         }
     }, 201
+
+@trips_bp.delete('/<int:trip_id>')
+def trip_delete(trip_id):
+    trip = Trip.query.get(trip_id)
+
+    if not trip:
+        return {
+            "success": False,
+            "error": "Trip not found",
+            "message": f"Trip with ID {trip_id} does not exitst",
+        },404
     
+    db.session.delete(trip)
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": "Trip deleted successfully"
+    },200
