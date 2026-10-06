@@ -1,6 +1,11 @@
 from app import create_app, db
+from flask import jsonify
 
 app = create_app()
+
+@app.route('/health', methods=['GET'])
+def index():
+    return {"status": "healthy"}, 200
 
 if __name__ == "__main__":
     with app.app_context():

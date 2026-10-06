@@ -13,11 +13,11 @@ class Trip(db.Model):
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
     budget = db.Column(db.Float, nullable=False, default=0.0)
-    max_travellers = db.Column(db.Integer, nullable=False, default=1)
+    max_travelers = db.Column(db.Integer, nullable=False, default=1)
     status = db.Column(db.String(20), nullable=False, default='planned')
 
     expenses = db.relationship('Expense', backref='trip', lazy='select', cascade="all, delete-orphan")
-    travelers = db.relationship('Traveler', secondary=trip_traveler, backref('trips', lazy='dynamic'))
+    travelers = db.relationship('Traveler', secondary=trip_traveler, backref = db.backref('trips', lazy='dynamic'))
 
     def __repr__(self):
         return f"<Trip to {self.destination}>"
