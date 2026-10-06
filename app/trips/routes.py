@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, render_template, request
 from app.models import Trip
-from validators.validators import trip_validate
+from validators.validators import trip_validate, trip_update_validate
 from app import db
 
 
@@ -63,6 +63,51 @@ def create_trip():
             "max_travelers": trip.max_travelers
         }
     }, 201
+
+
+@trips_bp.put('/<int:trip_id>')
+def trip_update(trip_id):
+    trip = Trip.query.get(trip_id)
+
+    if not trip:
+        return {
+            "success": False,
+            "error": "Trip not found",
+            "message": f"Trip with ID {trip_id} does not exitst",
+        },404
+
+    data = request.get_json()
+    msg, is_error, cleaned_data = trip_update_validate(data, trip.status)
+
+    if is_error:
+        return {
+            "success": False,
+            "error": msg
+        },404
+
+    trip.destination = cleaned_data['destination']
+    trip.start_date = cleaned_data['start_date']
+    trip.end_date = cleaned_data['end_date']
+    trip.budget = cleaned_data['budget']
+    trip.max_travelers = cleaned_data['max_travelers']
+    trip.status = cleaned_data['status']
+
+
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": "Trip created successfully",
+        "data": {
+            "id": trip.id,
+            "destination": trip.destination,
+            "start_date": trip.start_date.isoformat(),
+            "end_date": trip.end_date.isoformat(),
+            "budget": trip.budget,
+            "max_travelers": trip.max_travelers,
+            "status": trip.status
+        }
+    }, 200
 
 @trips_bp.delete('/<int:trip_id>')
 def trip_delete(trip_id):
