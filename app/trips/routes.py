@@ -1,14 +1,17 @@
-from flask import Blueprint, jsonify, render_template
+from flask import Blueprint, jsonify, render_template, request
 from app.models import Trip
+from validators.validators import trip_validate
+from app import db
+
 
 trips_bp = Blueprint('trips',__name__)
 
-@trips_bp.route('/', methods=['GET'])
+@trips_bp.get('/')
 def list_trips():
     trips = Trip.query.all()
     return jsonify([{"destination": trip.destination, "start_date": trip.start_date, "end_date": trip.end_date, "budget": trip.budget, "max_travelers": trip.max_travelers, "status": trip.status} for trip in trips])
 
-@trips_bp.route('/<int:trip_id>', methods=['GET'])
+@trips_bp.get('/<int:trip_id>')
 def get_list(trip_id):
     trip = Trip.query.get(trip_id)
 
@@ -25,3 +28,39 @@ def get_list(trip_id):
         "end_date": trip.end_date, "budget": trip.budget, 
         "max_travelers": trip.max_travelers, "status": trip.status}
         }, 200
+
+@trips_bp.post('/')
+def create_trip():
+    data = request.get_json()
+    msg, is_error, cleaned_data = trip_validate(data)
+
+    if is_error:
+        return {
+            "success": False,
+            "error": msg
+        },404
+
+    trip = Trip(
+        destination = cleaned_data['destination'],
+        start_date = cleaned_data['start_date'],
+        end_date = cleaned_data['end_date'],
+        budget = cleaned_data['budget'],
+        max_travelers = cleaned_data['max_travelers']
+    )
+
+    db.session.add(trip)
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": "Trip created successfully",
+        "data": {
+            "id": trip.id,
+            "destination": trip.destination,
+            "start_date": trip.start_date.isoformat(),
+            "end_date": trip.end_date.isoformat(),
+            "budget": trip.budget,
+            "max_travelers": trip.max_travelers
+        }
+    }, 201
+    
