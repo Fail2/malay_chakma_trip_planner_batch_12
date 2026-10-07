@@ -4,7 +4,7 @@ source venv/bin/activate
 # Install dependencies from requirements.txt
 pip install -r requirements.txt
 
-# Set environment variables fro Flask
+# Set environment variables for Flask
 export FLASK_APP=run.py
 export FLASK_ENV=development
 
