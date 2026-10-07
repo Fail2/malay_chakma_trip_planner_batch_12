@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, render_template, request
 from app.models import Trip, Traveler
 from validators.trip_validator import trip_create_validate, trip_update_validate
 from validators.traveler_validator import traveler_create_validate
-from app.services import add_traveler_to_trip
+from app.services import add_traveler_to_trip, delete_traveler_from_trip
 from app import db
 
 
@@ -131,10 +131,18 @@ def trip_delete(trip_id):
         "message": "Trip deleted successfully"
     },200
 
+# Manage Traveler Part -----------------------------------------
+
 @trips_bp.post('/<int:trip_id>/travelers')
 def add_traveler_to_trip_route(trip_id):
     data = request.get_json()
 
     response, status_code = add_traveler_to_trip(trip_id, data)
+
+    return response, status_code
+
+@trips_bp.delete('/<int:trip_id>/travelers/<int:traveler_id>')
+def delete_traveler_from_trip_route(trip_id, traveler_id):
+    response, status_code = delete_traveler_from_trip(trip_id, traveler_id)
 
     return response, status_code

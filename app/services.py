@@ -74,3 +74,44 @@ def add_traveler_to_trip(trip_id, data):
                 "id": traveler.id
             }
         },200
+
+def delete_traveler_from_trip(trip_id, traveler_id):
+    current_trip = Trip.query.get(trip_id)
+
+    if not current_trip:
+        return {
+            "success": False,
+            "error": "Trip not found",
+            "message": f"Trip with ID {trip_id} does not exist",
+        },404
+    
+    traveler = Traveler.query.get(traveler_id)
+
+    if not traveler:
+        return {
+            "success": False,
+            "error": "Traveler not found",
+            "message": f"Traveler with ID {traveler_id} does not exist",
+        },404
+
+    if traveler not in current_trip.travelers:
+        return {
+            "success": False,
+            "error": "Traveler is not in this trip",
+            "message": f"Traveler is not in this {current_trip}",
+        },404
+
+    if current_trip.status != 'planned':
+        return{
+            "success": False,
+            "error": "Traveler can't be removed",
+            "message": "Travelers can only be removed from planned trips"
+        },400
+
+    current_trip.travelers.remove(traveler)
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": f"Traveler removed from {current_trip} successfully"
+    },200
