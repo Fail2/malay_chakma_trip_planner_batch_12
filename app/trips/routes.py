@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, render_template, request
 from app.models import Trip
-from validators.validators import trip_validate, trip_update_validate
+from validators.validators import trip_create_validate, trip_update_validate
 from app import db
 
 
@@ -32,13 +32,13 @@ def get_list(trip_id):
 @trips_bp.post('/')
 def create_trip():
     data = request.get_json()
-    msg, is_error, cleaned_data = trip_validate(data)
+    msg, is_error, cleaned_data = trip_create_validate(data)
 
     if is_error:
         return {
             "success": False,
             "error": msg
-        },404
+        },400
 
     trip = Trip(
         destination = cleaned_data['destination'],
@@ -60,7 +60,8 @@ def create_trip():
             "start_date": trip.start_date.isoformat(),
             "end_date": trip.end_date.isoformat(),
             "budget": trip.budget,
-            "max_travelers": trip.max_travelers
+            "max_travelers": trip.max_travelers,
+            "status": trip.status
         }
     }, 201
 
@@ -77,13 +78,13 @@ def trip_update(trip_id):
         },404
 
     data = request.get_json()
-    msg, is_error, cleaned_data = trip_update_validate(data, trip.status)
+    msg, is_error, cleaned_data = trip_update_validate(data, trip)
 
     if is_error:
         return {
             "success": False,
             "error": msg
-        },404
+        },400
 
     trip.destination = cleaned_data['destination']
     trip.start_date = cleaned_data['start_date']
@@ -97,7 +98,7 @@ def trip_update(trip_id):
 
     return {
         "success": True,
-        "message": "Trip created successfully",
+        "message": "Trip updated successfully",
         "data": {
             "id": trip.id,
             "destination": trip.destination,
