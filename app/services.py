@@ -1,6 +1,7 @@
-from app.models import Trip, Traveler
+from app.models import Trip, Traveler, Expense
 from app import db
 from validators.traveler_validator import traveler_create_validate
+from validators.expense_validator import expense_create_validate
 
 def add_traveler_to_trip(trip_id, data):
     current_trip = Trip.query.get(trip_id)
@@ -114,4 +115,54 @@ def delete_traveler_from_trip(trip_id, traveler_id):
     return {
         "success": True,
         "message": f"Traveler removed from {current_trip} successfully"
+    },200
+
+def add_expense_to_trip(trip_id, data):
+    msg, is_error, cleaned_data = expense_create_validate(data)
+    if is_error:
+        return {
+            "success": False,
+            "error": "Request Data is not valid",
+            "message": msg
+        },400
+    
+    current_trip = Trip.query.get(trip_id)
+    if not current_trip:
+        return {
+            "success": False,
+            "error": "Trip not found",
+            "message": f"Trip with ID {trip_id} does not exist",
+        },404
+
+    if current_trip.status not in ['planned', 'ongoing']:
+        return {
+            "success": False,
+            "error": "Expense cannot be added",
+            "message": "Expenses can only be added to planned or ongoing trips"
+        },400
+
+    total_expense = 0
+    for expense in current_trip.expenses:
+        total_expense += expense.amount
+    
+    if total_expense + cleaned_data['amount'] > current_trip.budget:
+        return{
+            "success": False,
+            "error" : "Expense can't be added",
+            "message": f"Adding this expense would exceed the {current_trip} budget"
+        }, 400
+
+    expense = Expense(
+        title=cleaned_data['title'],
+        amount=cleaned_data['amount'],
+        description=cleaned_data['description']
+    )
+    db.session.add(expense)
+    
+    current_trip.expenses.append(expense)
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": f"Expense added to {current_trip} successfully"
     },200
