@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, render_template, request
 from app.models import Trip, Traveler
 from validators.trip_validator import trip_create_validate, trip_update_validate
 from validators.traveler_validator import traveler_create_validate
+from app.services import add_traveler_to_trip
 from app import db
 
 
@@ -131,50 +132,9 @@ def trip_delete(trip_id):
     },200
 
 @trips_bp.post('/<int:trip_id>/travelers')
-def add_traveler_to_trip(trip_id):
+def add_traveler_to_trip_route(trip_id):
     data = request.get_json()
 
-    trip = Trip.query.get(trip_id)
+    response, status_code = add_traveler_to_trip(trip_id, data)
 
-    if not trip:
-        return {
-            "success": False,
-            "error": "Trip not found",
-            "message": f"Trip with ID {trip_id} does not exitst",
-        },404
-
-    msg, is_error, cleaned_data = traveler_create_validate(data)
-
-    if is_error:
-        return{
-            "error": "Traveler details invalid",
-            "message": msg
-        }, 400
-    
-    traveler = Traveler.query.filter_by(
-        email = cleaned_data['email']
-    ).first()
-
-    if not traveler:
-        traveler = Traveler(
-            name=cleaned_data['name'],
-            email=cleaned_data['email']
-        )
-        db.session.add(traveler)
-        db.session.commit()
-    
-    if traveler in trip.travelers:
-        return {
-            "error": "Traveler is already added to this trip"
-        }, 400
-
-    trip.travelers.append(traveler)
-    db.session.commit()
-    return {"Success": True,
-            "message": f"Traveler added to {trip} successfully",
-            "data": {
-                "name": traveler.name,
-                "email": traveler.email,
-                "id": traveler.id
-            }
-        },200
+    return response, status_code
