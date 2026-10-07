@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, render_template, request
 from app.models import Trip
-from validators.validators import trip_create_validate, trip_update_validate
+from validators.trip_validator import trip_create_validate, trip_update_validate
 from app import db
 
 
@@ -9,7 +9,7 @@ trips_bp = Blueprint('trips',__name__)
 @trips_bp.get('/')
 def list_trips():
     trips = Trip.query.all()
-    return jsonify([{"destination": trip.destination, "start_date": trip.start_date, "end_date": trip.end_date, "budget": trip.budget, "max_travelers": trip.max_travelers, "status": trip.status} for trip in trips])
+    return jsonify([{"id": trip.id, "destination": trip.destination, "start_date": trip.start_date, "end_date": trip.end_date, "budget": trip.budget, "max_travelers": trip.max_travelers, "status": trip.status} for trip in trips])
 
 @trips_bp.get('/<int:trip_id>')
 def get_list(trip_id):
