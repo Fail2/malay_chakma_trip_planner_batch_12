@@ -13,5 +13,7 @@ def create_app():
     # If we put this import line it will create circular dependency
     from app.trips.routes import trips_bp
     app.register_blueprint(trips_bp, url_prefix='/api/v1/trips')
+    from app.travelers.routes import travelers_bp
+    app.register_blueprint(travelers_bp, url_prefix='/api/v1/trips/')
 
     return app
