@@ -245,3 +245,32 @@ def test_delete_trip_not_found(app):
         assert response["success"] is False
         assert response["error"] == "Resource not found"
 
+
+def test_get_trip_summary_success(app, trip):
+    with app.app_context():
+        response, status_code = get_trip_summary(trip.id)
+
+        assert status_code == 200
+        assert response["success"] is True
+
+        data = response["data"]
+
+        assert data["id"] == trip.id
+        assert data["destination"] == "Cox's Bazar"
+        assert data["budget"] == 50000
+        assert data["max_travelers"] == 5
+        assert data["available_seats"] == 5
+        assert data["travelers"]["traveler_count"] == 0
+        assert data["travelers"]["items"] == []
+        assert data["expenses"]["total"] == 0
+        assert data["expenses"]["remaining_budget"] == 50000
+
+
+def test_get_trip_summary_not_found(app):
+    with app.app_context():
+        response, status_code = get_trip_summary(999)
+
+        assert status_code == 404
+        assert response["success"] is False
+        assert response["error"] == "Resource not found"
+
