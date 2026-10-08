@@ -5,7 +5,7 @@ from app import db
 from datetime import datetime, date
 from validators.traveler_validator import traveler_create_validate
 from validators.expense_validator import expense_create_validate
-from validators.trip_validator import trip_create_validate, trip_update_validate, trip_status_update_validate
+from validators.trip_validator import trip_create_validate, trip_update_validate, trip_status_update_validate, get_total_expense
 
 
 # Trip Service Part-----------------------------------------------
@@ -99,6 +99,22 @@ def update_trip(trip_id, data):
             "error": "Validation error",
             "message": msg
         },400
+
+    current_expense = get_total_expense(trip.expenses)
+    if cleaned_data['budget'] < current_expense:
+        return {
+            "success": False,
+            "error": "Conflict",
+            "message": "Budget can't be less than current total expenses",
+        },409
+    current_travelers = len(trip.travelers)
+    if cleaned_data['max_travelers'] < current_travelers:
+        return {
+            "success": False,
+            "error": "Conflict",
+            "message": "Max travelers can't be less than current travelers count",
+        },409
+    
 
     trip.destination = cleaned_data['destination']
     trip.start_date = cleaned_data['start_date']

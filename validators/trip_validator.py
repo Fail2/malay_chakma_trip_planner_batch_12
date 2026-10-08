@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from math import isfinite
+from app.models import Trip
 
 def trip_create_validate(data):
     required_fields = [
@@ -49,7 +50,7 @@ def trip_create_validate(data):
     if start_date < today or end_date < today:
         return "Trip start or end date must be current or upcoming date", True, None
     if start_date >= end_date:
-        return "Trip must be at least 1 day", True, None
+        return "End date must be after start date", True, None
 
     # Budget validation
     if isinstance(data['budget'],bool) or not isinstance(data['budget'],(int, float)) or not isfinite(data['budget']):
@@ -127,7 +128,7 @@ def trip_update_validate(data, current_trip):
     if start_date < today or end_date < today:
         return "Trip start or end date must be current or upcoming date", True, None
     if start_date >= end_date:
-        return "Trip must be at least 1 day", True, None
+        return "End date must be after start date", True, None
 
     # Trip budget validation
     if isinstance(data['budget'],bool) or not isinstance(data['budget'],(int, float)) or not isfinite(data['budget']):
@@ -140,8 +141,9 @@ def trip_update_validate(data, current_trip):
     if isinstance(data['max_travelers'], bool) or not isinstance(data['max_travelers'],int) or not isfinite(data['max_travelers']):
         return "Max travelers must be an integer", True, None
     max_travelers = data['max_travelers']
-    if max_travelers < 1:
-        return "Max travelers at least 1", True, None
+    if max_travelers <= 0:
+        return "Max travelers must be greater than 0", True, None
+    
     
     # Ongoing trip validation
     if current_trip.status == 'ONGOING':
@@ -168,9 +170,6 @@ def trip_update_validate(data, current_trip):
     return "", False, cleaned_data
 
 def trip_status_update_validate(data, current_trip):
-    required_fields = [
-        'status'
-    ]
     # Request validation
     if not isinstance(data, dict):
         return "Request body must be a JSON object", True, None
@@ -179,10 +178,9 @@ def trip_status_update_validate(data, current_trip):
     if current_trip.status in ['CANCELLED', 'COMPLETED']:
         return "You can't change anything for CANCELLED or COMPLETED Trip", True, None
         
-    # Trip fields validation
-    for field in required_fields:
-        if field not in data:
-            return f"{field} is required", True, None
+    # Trip status check 
+    if 'status' not in data:
+        return "status is required", True, None
 
     # Trip status validation
     if not isinstance(data['status'],str):
@@ -205,3 +203,9 @@ def trip_status_update_validate(data, current_trip):
     }   
 
     return "", False, cleaned_data
+
+def get_total_expense(expenses):
+    total = 0
+    for expense in expenses:
+        total+= expense.amount
+    return total
