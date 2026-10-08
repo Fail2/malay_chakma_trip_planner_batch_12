@@ -84,3 +84,23 @@ def test_create_trip_validation_error(app):
         assert response["error"] == "Validation error"
 
 
+def test_get_trip_success(app, trip):
+    with app.app_context():
+        response, status_code = get_trip(trip.id)
+
+        assert status_code == 200
+        assert response["success"] is True
+        assert response["data"]["id"] == trip.id
+        assert response["data"]["destination"] == "Cox's Bazar"
+        assert response["data"]["budget"] == 50000
+
+
+def test_get_trip_not_found(app):
+    with app.app_context():
+        response, status_code = get_trip(999)
+
+        assert status_code == 404
+        assert response["success"] is False
+        assert response["error"] == "Resource not found"
+
+
