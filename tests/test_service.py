@@ -225,5 +225,23 @@ def test_update_trip_status_not_found(app):
         assert response["error"] == "Resource not found"
 
 
+def test_delete_trip_success(app, trip):
+    with app.app_context():
+        response, status_code = delete_trip(trip.id)
 
+        assert status_code == 200
+        assert response["success"] is True
+        assert response["message"] == "Trip deleted successfully"
+
+        deleted_trip = db.session.get(Trip, trip.id)
+        assert deleted_trip is None
+
+
+def test_delete_trip_not_found(app):
+    with app.app_context():
+        response, status_code = delete_trip(999)
+
+        assert status_code == 404
+        assert response["success"] is False
+        assert response["error"] == "Resource not found"
 
