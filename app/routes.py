@@ -68,7 +68,7 @@ def delete_traveler_from_trip_route(trip_id, traveler_id):
 
 # Manage Expense Part------------------------------------------
 
-@trips_bp.post('/<int:trip_id>/expense')
+@trips_bp.post('/<int:trip_id>/expenses')
 def add_expense_to_trip_route(trip_id):
     data = request.get_json()
 
