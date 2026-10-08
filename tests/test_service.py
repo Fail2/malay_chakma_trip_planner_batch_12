@@ -104,3 +104,13 @@ def test_get_trip_not_found(app):
         assert response["error"] == "Resource not found"
 
 
+def test_list_trips_success(app, trip):
+    with app.app_context():
+        response, status_code = list_trips()
+
+        assert status_code == 200
+        assert response["success"] is True
+        assert len(response["data"]) == 1
+        assert response["data"][0]["id"] == trip.id
+
+
