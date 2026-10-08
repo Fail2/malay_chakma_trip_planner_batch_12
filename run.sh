@@ -1,15 +1,11 @@
-# Activate the virtual environment
-source venv/bin/activate
+set -e
+ 
+cd "$(dirname "$0")"
+ 
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+fi
 
-# Install dependencies from requirements.txt
-pip install -r requirements.txt
-
-# Set environment variables for Flask
-export FLASK_APP=run.py
-export FLASK_ENV=development
-
-# Run tests
-python -m pytest tests/test_service.py -s
-
-# Start the Flask application
-python -m flask run --port 5000
+venv/bin/python -m pip install -r requirements.txt
+venv/bin/python -m pytest ./tests/test_service.py -v
+exec venv/bin/python run.py
