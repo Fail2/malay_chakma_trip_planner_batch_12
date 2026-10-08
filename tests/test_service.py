@@ -185,5 +185,45 @@ def test_update_trip_validation_error(app, trip):
         assert response["error"] == "Validation error"
 
 
+def test_update_trip_status_success(app, trip):
+    with app.app_context():
+        data = {
+            "status": "ongoing"
+        }
+
+        response, status_code = update_trip_status(trip.id, data)
+
+        assert status_code == 200
+        assert response["success"] is True
+        assert response["message"] == "Trip status updated successfully"
+        assert response["data"]["status"] == "ONGOING"
+
+
+def test_update_trip_status_invalid_transition(app, trip):
+    with app.app_context():
+        data = {
+            "status": "completed"
+        }
+
+        response, status_code = update_trip_status(trip.id, data)
+
+        assert status_code == 400
+        assert response["success"] is False
+        assert response["error"] == "Validation error"
+
+
+def test_update_trip_status_not_found(app):
+    with app.app_context():
+        data = {
+            "status": "ongoing"
+        }
+
+        response, status_code = update_trip_status(999, data)
+
+        assert status_code == 404
+        assert response["success"] is False
+        assert response["error"] == "Resource not found"
+
+
 
 
