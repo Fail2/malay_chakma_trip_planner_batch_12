@@ -18,7 +18,7 @@ def get_trip_route(trip_id):
 
 @trips_bp.post('/')
 def create_trip_route():
-    data = request.get_json()
+    data = request.get_json(silent=True)
     response, status_code = create_trip(data)
 
     return response, status_code
@@ -26,7 +26,7 @@ def create_trip_route():
 
 @trips_bp.put('/<int:trip_id>')
 def update_trip_route(trip_id):
-    data = request.get_json()
+    data = request.get_json(silent=True)
     response, status_code = update_trip(trip_id, data)
 
     return response, status_code
@@ -39,7 +39,7 @@ def delete_trip_route(trip_id):
 
 @trips_bp.patch('/<int:trip_id>/status')
 def update_trip_status_route(trip_id):
-    data = request.get_json()
+    data = request.get_json(silent=True)
     response, status_code = update_trip_status(trip_id, data)
 
     return response, status_code
@@ -54,7 +54,7 @@ def get_trip_summary_route(trip_id):
 
 @trips_bp.post('/<int:trip_id>/travelers')
 def add_traveler_to_trip_route(trip_id):
-    data = request.get_json()
+    data = request.get_json(silent=True)
 
     response, status_code = add_traveler_to_trip(trip_id, data)
 
@@ -70,7 +70,7 @@ def delete_traveler_from_trip_route(trip_id, traveler_id):
 
 @trips_bp.post('/<int:trip_id>/expenses')
 def add_expense_to_trip_route(trip_id):
-    data = request.get_json()
+    data = request.get_json(silent=True)
 
     response, status_code = add_expense_to_trip(trip_id, data)
 
