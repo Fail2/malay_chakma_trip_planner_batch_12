@@ -1,5 +1,5 @@
 import re
-from app.models import Trip, Traveler
+
 def traveler_create_validate(data):
     required_fields = [
         'name',
@@ -26,7 +26,7 @@ def traveler_create_validate(data):
 
     name_pattern = r'^[A-Za-z0-9 ]+$'
     if not re.fullmatch(name_pattern, name):
-        return "Invalid name format - name must be consist only A-Z, a-z and spaces", True, None
+        return "Invalid name format - name can contain only letters, numbers and spaces", True, None
 
     
     # Email validation
