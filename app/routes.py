@@ -37,7 +37,12 @@ def delete_trip_route(trip_id):
 
     return response, status_code
 
+@trips_bp.patch('/<int:trip_id>/status')
+def update_trip_status_route(trip_id):
+    data = request.get_json()
+    response, status_code = update_trip_status(trip_id, data)
 
+    return response, status_code
 
 # Manage Traveler Part -----------------------------------------
 

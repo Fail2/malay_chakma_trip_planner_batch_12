@@ -108,6 +108,41 @@ def update_trip(trip_id, data):
         }
     }, 200
 
+def update_trip_status(trip_id, data):
+    trip = Trip.query.get(trip_id)
+
+    if not trip:
+        return {
+            "success": False,
+            "error": "Trip not found",
+            "message": f"Trip with ID {trip_id} does not exist",
+        },404
+
+    msg, is_error, cleaned_data = trip_status_update_validate(data, trip)
+
+    if is_error:
+        return {
+            "success": False,
+            "error": msg
+        },400
+
+    trip.status = cleaned_data['status']
+
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": "Trip status updated successfully",
+        "data": {
+            "id": trip.id,
+            "destination": trip.destination,
+            "start_date": trip.start_date.isoformat(),
+            "end_date": trip.end_date.isoformat(),
+            "budget": trip.budget,
+            "max_travelers": trip.max_travelers,
+            "status": trip.status
+        }
+    }, 200
 
 def delete_trip(trip_id):
     trip = Trip.query.get(trip_id)
