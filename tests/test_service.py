@@ -47,3 +47,23 @@ def test_list_trips_empty(app):
         assert response["data"] == []
 
 
+def test_create_trip_success(app):
+    with app.app_context():
+        data = {
+            "destination": "Rangamati",
+            "start_date": "2099-10-10",
+            "end_date": "2099-10-15",
+            "budget": 35000,
+            "max_travelers": 4,
+        }
+
+        response, status_code = create_trip(data)
+
+        assert status_code == 201
+        assert response["success"] is True
+        assert response["message"] == "Trip created successfully"
+        assert response["data"]["destination"] == "Rangamati"
+        assert response["data"]["budget"] == 35000
+        assert response["data"]["max_travelers"] == 4
+
+
