@@ -1,7 +1,134 @@
+from flask import jsonify
+
 from app.models import Trip, Traveler, Expense
 from app import db
+from datetime import datetime, date
 from validators.traveler_validator import traveler_create_validate
 from validators.expense_validator import expense_create_validate
+from validators.trip_validator import trip_create_validate, trip_update_validate, trip_status_update_validate
+
+
+# Trip Service Part-----------------------------------------------
+
+def list_trips():
+    trips = Trip.query.all()
+    return jsonify([{"id": trip.id, "destination": trip.destination, "start_date": trip.start_date, "end_date": trip.end_date, "budget": trip.budget, "max_travelers": trip.max_travelers, "status": trip.status} for trip in trips]), 200
+
+
+def get_trip(trip_id):
+    trip = Trip.query.get(trip_id)
+
+    if not trip:
+        return {
+            "success": False,
+            "error": "Trip not found",
+            "message": f"Trip with ID {trip_id} does not exist",
+        },404
+
+    return {
+        "success": True,
+        "data": {"destination": trip.destination, "start_date": trip.start_date, 
+        "end_date": trip.end_date, "budget": trip.budget, 
+        "max_travelers": trip.max_travelers, "status": trip.status}
+        }, 200
+
+
+def create_trip(data):
+    msg, is_error, cleaned_data = trip_create_validate(data)
+
+    if is_error:
+        return {
+            "success": False,
+            "error": msg
+        },400
+
+    trip = Trip(
+        destination = cleaned_data['destination'],
+        start_date = cleaned_data['start_date'],
+        end_date = cleaned_data['end_date'],
+        budget = cleaned_data['budget'],
+        max_travelers = cleaned_data['max_travelers']
+    )
+
+    db.session.add(trip)
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": "Trip created successfully",
+        "data": {
+            "id": trip.id,
+            "destination": trip.destination,
+            "start_date": trip.start_date.isoformat(),
+            "end_date": trip.end_date.isoformat(),
+            "budget": trip.budget,
+            "max_travelers": trip.max_travelers,
+            "status": trip.status
+        }
+    }, 201
+
+
+def update_trip(trip_id, data):
+    trip = Trip.query.get(trip_id)
+
+    if not trip:
+        return {
+            "success": False,
+            "error": "Trip not found",
+            "message": f"Trip with ID {trip_id} does not exist",
+        },404
+
+    msg, is_error, cleaned_data = trip_update_validate(data, trip)
+
+    if is_error:
+        return {
+            "success": False,
+            "error": msg
+        },400
+
+    trip.destination = cleaned_data['destination']
+    trip.start_date = cleaned_data['start_date']
+    trip.end_date = cleaned_data['end_date']
+    trip.budget = cleaned_data['budget']
+    trip.max_travelers = cleaned_data['max_travelers']
+
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": "Trip updated successfully",
+        "data": {
+            "id": trip.id,
+            "destination": trip.destination,
+            "start_date": trip.start_date.isoformat(),
+            "end_date": trip.end_date.isoformat(),
+            "budget": trip.budget,
+            "max_travelers": trip.max_travelers,
+            "status": trip.status
+        }
+    }, 200
+
+
+def delete_trip(trip_id):
+    trip = Trip.query.get(trip_id)
+
+    if not trip:
+        return {
+            "success": False,
+            "error": "Trip not found",
+            "message": f"Trip with ID {trip_id} does not exist",
+        },404
+    
+    db.session.delete(trip)
+    db.session.commit()
+
+    return {
+        "success": True,
+        "message": "Trip deleted successfully"
+    },200
+
+
+# Traveler service part---------------------------------------------------
 
 def add_traveler_to_trip(trip_id, data):
     current_trip = Trip.query.get(trip_id)
@@ -117,12 +244,15 @@ def delete_traveler_from_trip(trip_id, traveler_id):
         "message": f"Traveler removed from {current_trip} successfully"
     },200
 
+
+# Expense Service Part ------------------------------------------------
+
 def add_expense_to_trip(trip_id, data):
     msg, is_error, cleaned_data = expense_create_validate(data)
     if is_error:
         return {
             "success": False,
-            "error": "Request Data is not valid",
+            "error": "Expense Data is not valid",
             "message": msg
         },400
     
