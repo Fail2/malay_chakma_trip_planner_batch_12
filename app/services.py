@@ -199,7 +199,7 @@ def get_trip_summary(trip_id):
         }
     }, 200
 
-    
+
 # Traveler service part---------------------------------------------------
 
 def add_traveler_to_trip(trip_id, data):
@@ -217,6 +217,13 @@ def add_traveler_to_trip(trip_id, data):
             "success": False,
             "error": "Traveler cannot be added",
             "message": "Travelers can only be added to planned trips"
+        },400
+
+    if current_trip.start_date < date.today():
+        return {
+            "success": False,
+            "error": "Trip has already started",
+            "message": "Travelers cannot be added to trips that have already started"
         },400
 
     msg, is_error, cleaned_data = traveler_create_validate(data)
@@ -253,9 +260,10 @@ def add_traveler_to_trip(trip_id, data):
             "message": f"{current_trip} has reached the maximum number of travelers"
         }, 400
 
-    overlapping_trip = Trip.query.filter(Trip.id != trip_id, Trip.travelers.any(Traveler.id == traveler.id),
-                                          Trip.start_date < current_trip.end_date,
-                                          Trip.end_date > current_trip.start_date ).first()
+    overlapping_trip = Trip.query.filter(Trip.id != trip_id, Trip.status.in_(['planned', 'ongoing']),
+                                        Trip.travelers.any(Traveler.id == traveler.id),
+                                        Trip.start_date < current_trip.end_date,
+                                        Trip.end_date > current_trip.start_date).first()
 
     if overlapping_trip:
         return {
