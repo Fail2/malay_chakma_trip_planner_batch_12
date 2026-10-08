@@ -67,3 +67,20 @@ def test_create_trip_success(app):
         assert response["data"]["max_travelers"] == 4
 
 
+def test_create_trip_validation_error(app):
+    with app.app_context():
+        data = {
+            "destination": "",
+            "start_date": "2099-10-10",
+            "end_date": "2099-10-15",
+            "budget": 50000,
+            "max_travelers": 5,
+        }
+
+        response, status_code = create_trip(data)
+
+        assert status_code == 400
+        assert response["success"] is False
+        assert response["error"] == "Validation error"
+
+
