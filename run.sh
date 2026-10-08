@@ -8,5 +8,8 @@ pip install -r requirements.txt
 export FLASK_APP=run.py
 export FLASK_ENV=development
 
+# Run tests
+python -m pytest tests/test_service.py -s
+
 # Start the Flask application
 python -m flask run --port 5000
