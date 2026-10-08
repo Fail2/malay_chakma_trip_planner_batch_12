@@ -185,7 +185,7 @@ def trip_status_update_validate(data, current_trip):
     # Trip status validation
     if not isinstance(data['status'],str):
         return "Status must be a string", True, None
-    status = data['status'].strip()
+    status = data['status'].strip().upper()
     if not status:
         return "Status field can't be empty", True, None
     if status not in ['PLANNED', 'ONGOING', 'COMPLETED', 'CANCELLED']:
