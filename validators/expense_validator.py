@@ -1,3 +1,4 @@
+from math import isfinite
 def expense_create_validate(data):
     required_fields = [
         'title',
@@ -24,7 +25,7 @@ def expense_create_validate(data):
         return "Title length can't exceed 50", True, None
 
     # Expense amount validation
-    if isinstance(data['amount'],bool) or not isinstance(data['amount'],(int, float)):
+    if isinstance(data['amount'],bool) or not isinstance(data['amount'],(int, float)) or not isfinite(data['amount']):
         return "Amount must be a number", True, None
     amount = data['amount']
     if amount <= 0:

@@ -32,7 +32,7 @@ def traveler_create_validate(data):
     # Email validation
     if not isinstance(data['email'],str):
         return "Email must be a string", True, None
-    email = data['email'].strip()
+    email = data['email'].strip().lower()
     if not email:
         return "Email field can't be empty", True, None
     if len(email)>120:
