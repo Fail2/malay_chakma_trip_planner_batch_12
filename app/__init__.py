@@ -4,10 +4,12 @@ from config import Config
 
 db = SQLAlchemy()
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_object(Config)
-    print(app.config['SQLALCHEMY_TRACK_MODIFICATIONS'])
+    
+    if test_config:
+        app.config.update(test_config)
 
     db.init_app(app)
     # If we put this import line it will create circular dependency
