@@ -114,3 +114,76 @@ def test_list_trips_success(app, trip):
         assert response["data"][0]["id"] == trip.id
 
 
+def test_update_trip_success(app, trip):
+    with app.app_context():
+        data = {
+            "destination": "Rangamati",
+            "start_date": "2099-11-10",
+            "end_date": "2099-11-15",
+            "budget": 60000,
+            "max_travelers": 6,
+        }
+
+        response, status_code = update_trip(trip.id, data)
+
+        assert status_code == 200
+        assert response["success"] is True
+        assert response["message"] == "Trip updated successfully"
+        assert response["data"]["destination"] == "Rangamati"
+        assert response["data"]["budget"] == 60000
+        assert response["data"]["max_travelers"] == 6
+
+
+def test_update_trip_not_found(app):
+    with app.app_context():
+        data = {
+            "destination": "Rangamati",
+            "start_date": "2099-11-10",
+            "end_date": "2099-11-15",
+            "budget": 60000,
+            "max_travelers": 6,
+        }
+
+        response, status_code = update_trip(999, data)
+
+        assert status_code == 404
+        assert response["success"] is False
+        assert response["error"] == "Resource not found"
+
+
+def test_update_trip_budget_less_than_expenses(app, trip):
+    with app.app_context():
+        data = {
+            "destination": "Cox's Bazar",
+            "start_date": "2099-10-10",
+            "end_date": "2099-10-15",
+            "budget": 40000,
+            "max_travelers": 5,
+        }
+
+        response, status_code = update_trip(trip.id, data)
+
+        assert status_code == 200
+        assert response["success"] is True
+
+
+
+def test_update_trip_validation_error(app, trip):
+    with app.app_context():
+        data = {
+            "destination": "",
+            "start_date": "2099-10-10",
+            "end_date": "2099-10-15",
+            "budget": 50000,
+            "max_travelers": 5,
+        }
+
+        response, status_code = update_trip(trip.id, data)
+
+        assert status_code == 400
+        assert response["success"] is False
+        assert response["error"] == "Validation error"
+
+
+
+
