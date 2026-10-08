@@ -44,6 +44,12 @@ def update_trip_status_route(trip_id):
 
     return response, status_code
 
+@trips_bp.get('/<int:trip_id>/summary')
+def get_trip_summary_route(trip_id):
+    response, status_code = get_trip_summary(trip_id)
+
+    return response, status_code
+
 # Manage Traveler Part -----------------------------------------
 
 @trips_bp.post('/<int:trip_id>/travelers')

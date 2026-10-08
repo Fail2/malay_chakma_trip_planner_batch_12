@@ -162,7 +162,44 @@ def delete_trip(trip_id):
         "message": "Trip deleted successfully"
     },200
 
+def get_trip_summary(trip_id):
+    trip = Trip.query.get(trip_id)
 
+    if not trip:
+        return {
+            "success": False,
+            "error": "Trip not found",
+            "message": f"Trip with ID {trip_id} does not exist",
+        },404
+
+    total_expense = sum(expense.amount for expense in trip.expenses)
+    remaining_budget = trip.budget - total_expense
+    travelers = [{"id": traveler.id, "name": traveler.name, "email": traveler.email} for traveler in trip.travelers]
+    expenses = [{"id": expense.id, "title": expense.title, "amount": expense.amount, "description": expense.description} for expense in trip.expenses]
+
+    return {
+        "success": True,
+        "data": {
+            "id": trip.id,
+            "destination": trip.destination,
+            "start_date": trip.start_date.isoformat(),
+            "end_date": trip.end_date.isoformat(),
+            "budget": trip.budget,
+            "max_travelers": trip.max_travelers,
+            "status": trip.status,
+            "travelers":{
+                "total": len(travelers),
+                "items": travelers
+            },
+            "expenses": {
+                "total": total_expense,
+                "remaining_budget": remaining_budget,
+                "items": expenses
+            },
+        }
+    }, 200
+
+    
 # Traveler service part---------------------------------------------------
 
 def add_traveler_to_trip(trip_id, data):
