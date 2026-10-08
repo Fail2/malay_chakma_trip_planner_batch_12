@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-
+from app.services import list_trips, get_trip, create_trip, update_trip, delete_trip, update_trip_status, get_trip_summary, add_traveler_to_trip, delete_traveler_from_trip, add_expense_to_trip
 trips_bp = Blueprint('trips',__name__)
 
 

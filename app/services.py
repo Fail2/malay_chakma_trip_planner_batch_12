@@ -12,7 +12,19 @@ from validators.trip_validator import trip_create_validate, trip_update_validate
 
 def list_trips():
     trips = Trip.query.all()
-    return jsonify([{"id": trip.id, "destination": trip.destination, "start_date": trip.start_date, "end_date": trip.end_date, "budget": trip.budget, "max_travelers": trip.max_travelers, "status": trip.status} for trip in trips]), 200
+    return {
+        "success": True,
+        "data":[
+            {
+                "id": trip.id, "destination": trip.destination, 
+                "start_date": trip.start_date.isoformat(),
+                "end_date": trip.end_date.isoformat(),
+                "budget": trip.budget, "max_travelers": trip.max_travelers, 
+                "status": trip.status
+            } 
+            for trip in trips
+        ]
+    }, 200
 
 
 def get_trip(trip_id):
@@ -21,14 +33,14 @@ def get_trip(trip_id):
     if not trip:
         return {
             "success": False,
-            "error": "Trip not found",
+            "error": "Resource not found",
             "message": f"Trip with ID {trip_id} does not exist",
         },404
 
     return {
         "success": True,
-        "data": {"destination": trip.destination, "start_date": trip.start_date, 
-        "end_date": trip.end_date, "budget": trip.budget, 
+        "data": {"id": trip.id,"destination": trip.destination, "start_date": trip.start_date.isoformat(), 
+        "end_date": trip.end_date.isoformat(), "budget": trip.budget, 
         "max_travelers": trip.max_travelers, "status": trip.status}
         }, 200
 
@@ -39,7 +51,8 @@ def create_trip(data):
     if is_error:
         return {
             "success": False,
-            "error": msg
+            "error": "Validation error",
+            "message": msg
         },400
 
     trip = Trip(
@@ -74,7 +87,7 @@ def update_trip(trip_id, data):
     if not trip:
         return {
             "success": False,
-            "error": "Trip not found",
+            "error": "Resource not found",
             "message": f"Trip with ID {trip_id} does not exist",
         },404
 
@@ -83,7 +96,8 @@ def update_trip(trip_id, data):
     if is_error:
         return {
             "success": False,
-            "error": msg
+            "error": "Validation error",
+            "message": msg
         },400
 
     trip.destination = cleaned_data['destination']
@@ -114,7 +128,7 @@ def update_trip_status(trip_id, data):
     if not trip:
         return {
             "success": False,
-            "error": "Trip not found",
+            "error": "Resource not found",
             "message": f"Trip with ID {trip_id} does not exist",
         },404
 
@@ -123,7 +137,8 @@ def update_trip_status(trip_id, data):
     if is_error:
         return {
             "success": False,
-            "error": msg
+            "error": "Validation error",
+            "message": msg
         },400
 
     trip.status = cleaned_data['status']
@@ -150,8 +165,9 @@ def delete_trip(trip_id):
     if not trip:
         return {
             "success": False,
-            "error": "Trip not found",
+            "error": "Resource not found",
             "message": f"Trip with ID {trip_id} does not exist",
+            "Data": None
         },404
     
     db.session.delete(trip)
@@ -168,7 +184,7 @@ def get_trip_summary(trip_id):
     if not trip:
         return {
             "success": False,
-            "error": "Trip not found",
+            "error": "Resource not found",
             "message": f"Trip with ID {trip_id} does not exist",
         },404
 
@@ -186,9 +202,10 @@ def get_trip_summary(trip_id):
             "end_date": trip.end_date.isoformat(),
             "budget": trip.budget,
             "max_travelers": trip.max_travelers,
+            "available_seats": trip.max_travelers - len(travelers),
             "status": trip.status,
             "travelers":{
-                "total": len(travelers),
+                "traveler_count": len(travelers),
                 "items": travelers
             },
             "expenses": {
@@ -208,22 +225,15 @@ def add_traveler_to_trip(trip_id, data):
     if not current_trip:
         return {
             "success": False,
-            "error": "Trip not found",
+            "error": "Resource not found",
             "message": f"Trip with ID {trip_id} does not exist",
         },404
 
-    if current_trip.status != 'planned':
+    if current_trip.status != 'PLANNED':
         return {
             "success": False,
-            "error": "Traveler cannot be added",
-            "message": "Travelers can only be added to planned trips"
-        },400
-
-    if current_trip.start_date < date.today():
-        return {
-            "success": False,
-            "error": "Trip has already started",
-            "message": "Travelers cannot be added to trips that have already started"
+            "error": "Invalid operation",
+            "message": "Travelers can only be added to PLANNED trips"
         },400
 
     msg, is_error, cleaned_data = traveler_create_validate(data)
@@ -231,7 +241,7 @@ def add_traveler_to_trip(trip_id, data):
     if is_error:
         return{
             "success": False,
-            "error": "Traveler details invalid",
+            "error": "Validation error",
             "message": msg
         }, 400
     
@@ -249,18 +259,18 @@ def add_traveler_to_trip(trip_id, data):
     if traveler in current_trip.travelers:
         return {
             "success": False,
-            "error": "Traveler already exists in this trip",
+            "error": "Conflict",
             "message": f"Traveler is already added to {current_trip}"
-        }, 400
+        }, 409
     
     if len(current_trip.travelers) >= current_trip.max_travelers:
         return {
             "success": False,
-            "error": "Trip is full",
+            "error": "Trip_Full",
             "message": f"{current_trip} has reached the maximum number of travelers"
-        }, 400
+        }, 409
 
-    overlapping_trip = Trip.query.filter(Trip.id != trip_id, Trip.status.in_(['planned', 'ongoing']),
+    overlapping_trip = Trip.query.filter(Trip.id != trip_id, Trip.status.in_(['PLANNED', 'ONGOING']),
                                         Trip.travelers.any(Traveler.id == traveler.id),
                                         Trip.start_date < current_trip.end_date,
                                         Trip.end_date > current_trip.start_date).first()
@@ -268,9 +278,9 @@ def add_traveler_to_trip(trip_id, data):
     if overlapping_trip:
         return {
             "success": False,
-            "error": "Traveler has another overlapping trip",
+            "error": "Conflict",
             "message": f"Traveler already has an overlapping trip: {overlapping_trip}"
-        },400
+        },409
 
     current_trip.travelers.append(traveler)
     db.session.commit()
@@ -281,7 +291,7 @@ def add_traveler_to_trip(trip_id, data):
                 "email": traveler.email,
                 "id": traveler.id
             }
-        },200
+        },201
 
 def delete_traveler_from_trip(trip_id, traveler_id):
     current_trip = Trip.query.get(trip_id)
@@ -289,7 +299,7 @@ def delete_traveler_from_trip(trip_id, traveler_id):
     if not current_trip:
         return {
             "success": False,
-            "error": "Trip not found",
+            "error": "Resource not found",
             "message": f"Trip with ID {trip_id} does not exist",
         },404
     
@@ -298,22 +308,22 @@ def delete_traveler_from_trip(trip_id, traveler_id):
     if not traveler:
         return {
             "success": False,
-            "error": "Traveler not found",
+            "error": "Resource not found",
             "message": f"Traveler with ID {traveler_id} does not exist",
         },404
 
     if traveler not in current_trip.travelers:
         return {
             "success": False,
-            "error": "Traveler is not in this trip",
+            "error": "Resource not found",
             "message": f"Traveler is not in this {current_trip}",
         },404
 
-    if current_trip.status != 'planned':
+    if current_trip.status != 'PLANNED':
         return{
             "success": False,
             "error": "Traveler can't be removed",
-            "message": "Travelers can only be removed from planned trips"
+            "message": "Travelers can only be removed from PLANNED trips"
         },400
 
     current_trip.travelers.remove(traveler)
@@ -321,34 +331,37 @@ def delete_traveler_from_trip(trip_id, traveler_id):
 
     return {
         "success": True,
-        "message": f"Traveler removed from {current_trip} successfully"
+        "message": f"Traveler removed from {current_trip} successfully",
+        "Data": None
     },200
 
 
 # Expense Service Part ------------------------------------------------
 
 def add_expense_to_trip(trip_id, data):
-    msg, is_error, cleaned_data = expense_create_validate(data)
-    if is_error:
-        return {
-            "success": False,
-            "error": "Expense Data is not valid",
-            "message": msg
-        },400
-    
     current_trip = Trip.query.get(trip_id)
     if not current_trip:
         return {
             "success": False,
-            "error": "Trip not found",
+            "error": "Resource not found",
             "message": f"Trip with ID {trip_id} does not exist",
         },404
-
-    if current_trip.status not in ['planned', 'ongoing']:
+    
+    msg, is_error, cleaned_data = expense_create_validate(data)
+    if is_error:
         return {
             "success": False,
-            "error": "Expense cannot be added",
-            "message": "Expenses can only be added to planned or ongoing trips"
+            "error": "Validation error",
+            "message": msg
+        },400
+    
+
+
+    if current_trip.status not in ['PLANNED', 'ONGOING']:
+        return {
+            "success": False,
+            "error": "Invalid operation",
+            "message": "Expenses can only be added to PLANNED or ONGOING trips"
         },400
 
     total_expense = 0
@@ -358,7 +371,7 @@ def add_expense_to_trip(trip_id, data):
     if total_expense + cleaned_data['amount'] > current_trip.budget:
         return{
             "success": False,
-            "error" : "Expense can't be added",
+            "error" : "Invalid operation",
             "message": f"Adding this expense would exceed the {current_trip} budget"
         }, 400
 
@@ -374,5 +387,11 @@ def add_expense_to_trip(trip_id, data):
 
     return {
         "success": True,
-        "message": f"Expense added to {current_trip} successfully"
-    },200
+        "message": f"Expense added to {current_trip} successfully",
+        "data": {
+            "id": expense.id,
+            "title": expense.title,
+            "amount": expense.amount,
+            "description": expense.description
+        }
+    },201

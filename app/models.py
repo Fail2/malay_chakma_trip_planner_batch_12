@@ -14,7 +14,7 @@ class Trip(db.Model):
     end_date = db.Column(db.Date, nullable=False)
     budget = db.Column(db.Float, nullable=False, default=0.0)
     max_travelers = db.Column(db.Integer, nullable=False, default=1)
-    status = db.Column(db.String(20), nullable=False, default='planned')
+    status = db.Column(db.String(20), nullable=False, default='PLANNED')
 
     expenses = db.relationship('Expense', backref='trip', lazy='select', cascade="all, delete-orphan")
     travelers = db.relationship('Traveler', secondary=trip_traveler, backref = db.backref('trips', lazy='dynamic'))

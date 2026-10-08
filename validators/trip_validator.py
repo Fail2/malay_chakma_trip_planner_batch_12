@@ -89,8 +89,8 @@ def trip_update_validate(data, current_trip):
         return "Request body must be a JSON object", True, None
    
     # Cancelled or Completed trips validation
-    if current_trip.status in ['cancelled', 'completed']:
-        return "You can't change anything for cancelled or completed Trip", True, None
+    if current_trip.status in ['CANCELLED', 'COMPLETED']:
+        return "You can't change anything for CANCELLED or COMPLETED Trip", True, None
     
     # Trip fields validation
     for field in required_fields:
@@ -144,17 +144,17 @@ def trip_update_validate(data, current_trip):
         return "Max travelers at least 1", True, None
     
     # Ongoing trip validation
-    if current_trip.status == 'ongoing':
+    if current_trip.status == 'ONGOING':
         if destination != current_trip.destination:
-            return "Can't change ongoing trip destination", True, None
+            return "Can't change ONGOING trip destination", True, None
         if start_date != current_trip.start_date:
-            return "Can't change ongoing trip start date", True, None
+            return "Can't change ONGOING trip start date", True, None
         if end_date != current_trip.end_date:
-            return "Can't change ongoing trip end date", True, None
+            return "Can't change ONGOING trip end date", True, None
         if budget != current_trip.budget:
-            return "Can't change ongoing trip budget", True, None
+            return "Can't change ONGOING trip budget", True, None
         if max_travelers != current_trip.max_travelers:
-            return "Can't change ongoing trip max travelers", True, None
+            return "Can't change ONGOING trip max travelers", True, None
 
     # Cleaned data
     cleaned_data = {
@@ -176,8 +176,8 @@ def trip_status_update_validate(data, current_trip):
         return "Request body must be a JSON object", True, None
        
     # Cancelled or Completed trips validation
-    if current_trip.status in ['cancelled', 'completed']:
-        return "You can't change anything for cancelled or completed Trip", True, None
+    if current_trip.status in ['CANCELLED', 'COMPLETED']:
+        return "You can't change anything for CANCELLED or COMPLETED Trip", True, None
         
     # Trip fields validation
     for field in required_fields:
@@ -190,15 +190,15 @@ def trip_status_update_validate(data, current_trip):
     status = data['status'].strip()
     if not status:
         return "Status field can't be empty", True, None
-    if status not in ['planned', 'ongoing', 'completed', 'cancelled']:
+    if status not in ['PLANNED', 'ONGOING', 'COMPLETED', 'CANCELLED']:
         return "Choose a valid status", True, None
 
-    if current_trip.status == 'planned':
-        if status not in ['cancelled', 'ongoing']:
-            return "Planned trip can only transform to ongoing or cancelled", True, None
-    if current_trip.status == 'ongoing':
-        if status not in ['completed', 'cancelled']:
-            return "Ongoing trip can only transform to completed or cancelled", True, None
+    if current_trip.status == 'PLANNED':
+        if status not in ['CANCELLED', 'ONGOING']:
+            return "Planned trip can only transform to ONGOING or CANCELLED", True, None
+    if current_trip.status == 'ONGOING':
+        if status not in ['COMPLETED', 'CANCELLED']:
+            return "Ongoing trip can only transform to COMPLETED or CANCELLED", True, None
     
     cleaned_data = {
         "status": status
